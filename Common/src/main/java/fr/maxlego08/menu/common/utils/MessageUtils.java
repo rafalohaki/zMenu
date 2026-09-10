@@ -75,7 +75,12 @@ public abstract class MessageUtils extends LocationUtils {
      */
     public static void message(MenuPlugin plugin, CommandSender sender, IMessage message, Object... args) {
 
-        if (sender instanceof ConsoleCommandSender) {
+        // Każdy nadawca, który nie jest graczem (konsola, RCON, bloki komend,
+        // inne pluginy), dostaje wariant konsolowy. Wcześniej sprawdzano tylko
+        // `ConsoleCommandSender`, więc RCON (RemoteConsoleCommandSender) wpadał
+        // w gałąź gracza i kończył się ClassCastException przy `(Player) sender`
+        // — dowód: `/sklep reload` z RCON na labie 2026-09-10.
+        if (!(sender instanceof Player player)) {
             if (!message.getMessages().isEmpty()) {
                 message.getMessages().forEach(msg -> plugin.getMetaUpdater().sendMessage(sender, Message.PREFIX.msg() + getMessage(msg, args)));
             } else {
@@ -83,7 +88,6 @@ public abstract class MessageUtils extends LocationUtils {
             }
         } else {
 
-            Player player = (Player) sender;
             switch (message.getType()) {
                 case CENTER:
                     if (!message.getMessages().isEmpty()) {
